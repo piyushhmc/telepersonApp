@@ -110,4 +110,23 @@ export class VendorsController {
 
 
     }
+
+    @Roles('Admin')
+    @UseGuards(JwtAuthGuard)
+    @Get('vendorIntentList')
+    async vendorIntentManagementList(
+        @Query('search') search: string,
+        @Query('page') pageNo: string,
+    ) {
+        try {
+            const page = (pageNo != undefined && pageNo != "" )? pageNo:"1";
+            const vendorIntentList = await this.vendorsService.vendorIntentManagementList(search,+page)
+            return this.common.makeSuccessResponse(vendorIntentList, 200)
+        }
+        catch (err) {
+            throw new UnprocessableEntityException(err)
+        }
+
+
+    }
 }

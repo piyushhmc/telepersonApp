@@ -179,4 +179,14 @@ export class VendorsService {
         }
         
     }
+
+    async vendorIntentManagementList(search:string,pageNo:number){
+        try{
+            const take = this.configService.get<number>('PAGE_SIZE')||25;
+            return await this.vendorsRepository.vendorIntentManagementList(search,pageNo,take)
+        }
+        catch(err){
+            throw new UnprocessableEntityException(`error in vendor management list  ${err}`);
+        }
+    }
 }

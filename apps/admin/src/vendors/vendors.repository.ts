@@ -46,5 +46,27 @@ export class VendorRepository extends AbstractRepository<Vendors> {
       }
     }
   }
+
+  async vendorIntentManagementList(search: string, page: number , pageSize: number){
+
+    const offset = (page - 1) * pageSize;
+
+    const rawQuery = `SELECT v.companyName AS companyName, 
+    COUNT(uv.userId) AS countUser,v.industry as sector,
+    uv.assignedDate addedAt
+    FROM vendors v
+    LEFT JOIN user_vendors uv ON v.id = uv.vendorId
+    WHERE uv.isActive = 1
+    GROUP BY v.companyCode
+    order by uv.id DESC  LIMIT ${pageSize}  OFFSET ${offset}`;
+
+    try {
+      const result = await this.getItemsRepository().query(rawQuery);
+      return result;
+    } catch (error) {
+      throw new Error(`Error executing  query: ${error.message}`);
+    }
+
+  }
 }
 
