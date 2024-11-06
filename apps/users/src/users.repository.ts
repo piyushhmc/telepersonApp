@@ -16,5 +16,15 @@ export class UsersRepository extends AbstractRepository<User> {
   ) {
     super(itemsRepository, entityManager);
   }
+
+  async getUserId(guid: string) {
+    try {
+      const rawQuery = `SELECT id,firstName,lastName,email FROM user WHERE usrGuid = ?;`;
+      const result = await this.getItemsRepository().query(rawQuery, [guid]);
+      return result;
+    } catch (error) {
+      throw new Error(`Error executing raw query: ${error.message}`);
+    }
+  }
 }
 

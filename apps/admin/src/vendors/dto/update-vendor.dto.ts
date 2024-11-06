@@ -51,4 +51,10 @@ export class UpdateVendorDto {
   "isCommunityVendor": number;
   @IsNumber()
   "isdefaultVendor": number;
+  @IsString()
+  facebook?: string;  
+  @IsString()
+  twitter?: string; 
+   @IsString()
+  instagram?: string;
 }

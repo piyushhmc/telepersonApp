@@ -12,9 +12,9 @@ RUN npm install -g pnpm
 COPY apps/auth apps/auth
 COPY libs libs
 
-RUN pnpm install -r 
+RUN npm install -r 
 
-RUN pnpm run build auth
+RUN npm run build auth
 
 FROM node:alpine as production
 
@@ -24,11 +24,11 @@ ENV NODE_ENV=${NODE_ENV}
 WORKDIR /usr/src/app
 
 COPY package.json ./
-COPY pnpm-lock.yaml ./
+COPY npm-lock.yaml ./
 
 RUN npm install -g pnpm
 
-RUN pnpm install --prod
+RUN npm install --prod
 
 COPY --from=development /usr/src/app/dist ./dist
 

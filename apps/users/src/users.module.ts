@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import * as Joi from 'joi';
 import { UsersService } from './users.service';
 import { UsersController } from './users.controller';
@@ -21,11 +21,20 @@ import { UserReferal } from './models/userreferal.entity';
 import { Common } from './utils/common';
 import { UserVendors } from './user-vendors/models/user-vendors.entity'; 
 import { UserVenndorsRepository } from './user-vendors/user-vendors.repository';
-
+import { MXUserTransctionRepository } from './mx-user-transction.repository';
+import { ScheduleModule } from '@nestjs/schedule';
+import { MXUserTransction } from './models/mx-user-transction.entity';
+import { Vendors } from './user-vendors/models/vendors.entity';
+import { VendorLocation } from './user-vendors/models/vendor-location.entity';
+import { MXPlatformController } from './mx-platform/mx-platform.controller';
+import { TwilioModule } from './twilio/twilio.module';
+import { TwilioLogs } from './user-vendors/models/twiliologs.entity';
+// import { TwilioService } from './twilio/twilio.service';
+@Global()
 @Module({
   imports: [
     DatabaseModule,
-    DatabaseModule.forFeature([User,ForgotPassword,UserReferal,UserVendors]),
+    DatabaseModule.forFeature([User,ForgotPassword,UserReferal,UserVendors,MXUserTransction,Vendors,VendorLocation,TwilioLogs]),
     LoggerModule,
     ConfigModule.forRoot({
       isGlobal: true,
@@ -51,12 +60,16 @@ import { UserVenndorsRepository } from './user-vendors/user-vendors.repository';
         inject: [ConfigService],
       },
     ]),
+    ScheduleModule.forRoot(),
     HealthModule,
     S3Module,
     UserVendorsModule,
+    TwilioModule,
   ],
   controllers: [UsersController],
-  providers: [UsersService, UsersRepository,UsersForgotPaswordRepository,UsersReferalRepository,UserVenndorsRepository,Common],
+  providers: [UsersService, UsersRepository,UsersForgotPaswordRepository,
+    UsersReferalRepository,UserVenndorsRepository,Common,
+    MXUserTransctionRepository,MXPlatformController],
 })
 
 

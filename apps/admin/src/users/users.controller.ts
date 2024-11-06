@@ -6,11 +6,13 @@ import { string } from 'joi';
 import { Common } from '../utils/common';
 import { RegisterUserDto } from './dto/registration.dto';
 import { PutUserDto } from './dto/put-user.dto';
+import { Logger } from 'nestjs-pino';
 
 @Controller('users')
 export class UsersController {
     constructor(private readonly userService: UsersService,
-        private readonly common: Common
+        private readonly common: Common,
+        private readonly logger: Logger
     ) { }
 
     @Roles('Admin')
@@ -43,6 +45,7 @@ export class UsersController {
             return this.common.makeSuccessResponse(userList, 200)
         }
         catch (err) {
+            this.logger.log(err)
             throw new UnprocessableEntityException(err)
         }
 
@@ -53,12 +56,11 @@ export class UsersController {
     async registerUser(@Body() registerUserDto:RegisterUserDto) {
 
         try {
-            console.log("registerUserDto",registerUserDto)
             const regUser = await this.userService.registerUser(registerUserDto)
-
             return this.common.makeSuccessResponse(regUser, 200)
         }
         catch (err) {
+            this.logger.log(err)
             throw new UnprocessableEntityException(err)
         }
 
@@ -77,6 +79,7 @@ export class UsersController {
             return this.common.makeSuccessResponse(userList, 200)
         }
         catch (err) {
+            this.logger.log(err)
             throw new UnprocessableEntityException(err)
         }
 

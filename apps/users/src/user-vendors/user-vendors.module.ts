@@ -18,13 +18,19 @@ import{VenndorIntentsRepository} from './vendor-intents.repository';
 import { VendorIntents } from './models/vendor-intent.entity';
 import { IntentsRepository } from './intents.repository';
 import { Intents } from './models/intent.entity';
+import { CompanyRating } from './models/company-rating';
+import { TelepersonRating } from './models/teleperson-rating';
+import { VendorLocation } from './models/vendor-location.entity';
+import { VenndorLocationRepository } from './vendor-location.repository';
+import { MXPLATFORMModule } from '../mx-platform/mx-platform.module';
 
 
 @Module({
   imports:[
     DatabaseModule,
-    DatabaseModule.forFeature([UserVendors,Vendors,VendorIntents,Intents]),
+    DatabaseModule.forFeature([UserVendors,Vendors,VendorIntents,Intents,CompanyRating,TelepersonRating,VendorLocation]),
     LoggerModule,
+    MXPLATFORMModule,
     ClientsModule.registerAsync([
       {
         name: AUTH_SERVICE,
@@ -41,7 +47,7 @@ import { Intents } from './models/intent.entity';
   ],
   controllers: [UserVendorsController],
   providers: [UserVenndorsRepository, UserVendorsService,VenndorsRepository,
-    Common,VenndorIntentsRepository,IntentsRepository],
+    Common,VenndorIntentsRepository,IntentsRepository,VenndorLocationRepository],
   exports: [UserVendorsService],
 })
 

@@ -35,10 +35,12 @@ export class VenndorsRepository extends AbstractRepository<Vendors> {
       `vendors.companyName`,
       `vendors.companyCode`,
       `vendors.logoUrl`,
-      `vendors.websiteURL` 
+      `vendors.websiteURL` ,
+      `vendors.isMX`, 
+      `vendors.approvalStatus` 
     ])
     .where(`vendors.${searchBy}  LIKE :keyword`, { keyword: `%${search}%` })
-    .andWhere(`vendors.isCommunityVendor=:isCommunityVendor`,{isCommunityVendor:0})
+    .andWhere('vendors.approvalStatus NOT IN (:...statuses)', { statuses: ['DELETED', 'SUBMITTED'] })
     .getMany();
   }
 
@@ -47,6 +49,25 @@ export class VenndorsRepository extends AbstractRepository<Vendors> {
       .select(['vendors.industry', 'vendors.id', 'vendors.companyName', 'vendors.logoUrl','vendors.websiteURL'])
       .where('vendors.isCommunityVendor = :isCommunityVendor', { isCommunityVendor: 1 })
       .getRawMany();
+  }
+
+  async getLastVendorId() {
+    const result = await this.getItemsRepository().createQueryBuilder('vendors')
+      .select("MAX(vendors.id)", "lastId")
+      .getRawOne();
+    return result ? result.lastId : null;
+  }
+
+  async getVendor(offeset:number){
+    return  await this.getItemsRepository().createQueryBuilder('vendors')
+            .select(['vendors.companyName','vendors.id','vendors.logoUrl','vendors.guid'])
+            .limit(1)
+            .offset(offeset)
+            .getOne()
+  }
+
+  async updateVendor(vendorId: number, updateData: Partial<Vendors>) {
+    return await this.getItemsRepository().update(vendorId, updateData);
   }
 }
 

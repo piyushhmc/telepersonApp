@@ -32,7 +32,8 @@ export class UserVenndorsRepository extends AbstractRepository<UserVendors> {
     v.logoUrl,
     v.foundedYear,
     v.approvalStatus,
-    v.companyName
+    v.companyName,
+    v.isMX
     FROM user_vendors uv
     Left Join vendors v on uv.vendorId = v.id 
     WHERE uv.deletedAt IS   NULL 
@@ -83,6 +84,7 @@ export class UserVenndorsRepository extends AbstractRepository<UserVendors> {
     const rawQuery = `SELECT uv.id as userVendorId,
     v.id as vendorId,
     v.companyName as vendorName,
+    v.approvalStatus,
     v.logoUrl  as vendorLogo ,
     u.id as userId,
     u.profileImage as profileImage,
@@ -106,7 +108,7 @@ export class UserVenndorsRepository extends AbstractRepository<UserVendors> {
   }
 
   async getCommunityUsersVendor(userId: number, page: number = 1, pageSize: number = 10) {
-
+    const active: string = "Active"
     const offset = (page - 1) * pageSize;
     const queryBuilder = await this.getItemsRepository().createQueryBuilder('user_vendors');
 
@@ -119,10 +121,13 @@ export class UserVenndorsRepository extends AbstractRepository<UserVendors> {
 
     const commonUsers = await queryBuilder
       .select(['user_vendors.userId'])
+      .leftJoin('user', 'u', 'user_vendors.userId = u.id')
       .where(`user_vendors.vendorId IN (${subQuery})`)
       .andWhere('user_vendors.userId <> :userId', { userId })
       .andWhere('user_vendors.deletedAt IS  NULL')
       .andWhere('user_vendors.isActive = 1')
+      .andWhere('u.deletedAt IS NULL')
+      .andWhere('u.status = :status', { status: active })
       .groupBy('user_vendors.userId')
       .offset(offset)
       .limit(pageSize)
@@ -139,6 +144,7 @@ export class UserVenndorsRepository extends AbstractRepository<UserVendors> {
     v.id as vendorId,
     v.companyName as name,
     v.logoUrl  as logo ,
+    v.approvalStatus,
     u.id as userId,
     u.profileImage as profileImage,
     u.firstName,
@@ -152,6 +158,7 @@ export class UserVenndorsRepository extends AbstractRepository<UserVendors> {
     Left Join vendors v on uv.vendorId = v.id 
     Left JOIN  user u on uv.userId =u.id
     WHERE userId = ${userId} 
+    AND u.deletedAt IS NULL
     AND uv.deletedAt IS  NULL  AND uv.isActive = 1 
     order by uv.id DESC  LIMIT ${pageSize}  OFFSET ${offset};`;
 
@@ -167,7 +174,7 @@ export class UserVenndorsRepository extends AbstractRepository<UserVendors> {
 
     const offset = (page - 1) * pageSize;
 
-    const rawQuery = `SELECT uv.vendorId, v.companyName as name, v.logoUrl  as logo 
+    const rawQuery = `SELECT uv.vendorId, v.companyName as name,v.approvalStatus as approvalStatus, v.logoUrl  as logo 
     FROM user_vendors uv
     left join vendors v  on uv.vendorId =v.id 
     WHERE userId = ${userId}
@@ -246,7 +253,7 @@ export class UserVenndorsRepository extends AbstractRepository<UserVendors> {
 
   async getCommunityUserDetails(userIds: number[]) {
 
-    const rawQuery = `SELECT id,profileImage FROM user  WHERE id  IN  (${userIds})  and deletedAt IS  NULL`;
+    const rawQuery = `SELECT id,firstName,lastName,profileImage FROM user  WHERE id  IN  (${userIds})  and deletedAt IS  NULL`;
 
     try {
       const result = await this.getItemsRepository().query(rawQuery);
@@ -256,5 +263,95 @@ export class UserVenndorsRepository extends AbstractRepository<UserVendors> {
     }
   }
 
+  async getVendorUserDetails(vendorId: number, userid: number) {
+
+    const query = `SELECT u.id, u.firstName, u.lastName, u.profileImage FROM 
+        user u WHERE u.id IN ( SELECT DISTINCT uv.userId FROM user_vendors uv WHERE uv.vendorId = ${vendorId} AND uv.userId != ${userid} AND uv.isActive = 1);`
+
+    try {
+      const result = await this.getItemsRepository().query(query);
+      return result
+    } catch (error) {
+      throw new Error(`Error executing  query: ${error.message}`);
+    }
+  }
+  async findAllCommunityVendors(uniqueVendoridsid, userid) {
+
+    const uniqueVendoridsString = uniqueVendoridsid.join(',')
+
+    const rawQuery = `SELECT  v.id as vendorId,
+    v.companyName as vendorName,
+    v.companyCode,
+    v.logoUrl  as vendorLogo 
+    FROM vendors v
+    JOIN user_vendors uv ON v.id = uv.vendorid
+    WHERE uv.userid <> ${userid}
+    AND uv.userid IN (
+        SELECT userId
+        FROM user_vendors
+        WHERE vendorId in (${uniqueVendoridsString})
+    ) 
+    AND uv.deletedAt IS NULL 
+    group by v.companyName;`
+
+    try {
+      return await this.getItemsRepository().query(rawQuery);
+    } catch (error) {
+      throw new Error(`Error executing  query: ${error.message}`);
+    }
+  }
+
+  async checkExistingMao(userId: number, vendorId: number): Promise<number> {
+    try {
+      const count = await this.getItemsRepository().count({
+        where: {
+          userId,
+          vendorId,
+        },
+      });
+      return count;
+    } catch (error) {
+      throw new Error(`Error executing query: ${error.message}`);
+    }
+  }
+
+  async getTopVendors(userId: number) {
+    
+    const rawQuery = `
+      SELECT 
+        v.companyName, 
+        v.logoUrl, 
+        v.websiteURL, 
+        uv.vendorId, 
+        COUNT(uv.userId) AS total_subscriptions
+      FROM 
+        user_vendors uv
+      JOIN 
+        vendors v ON uv.vendorId = v.id
+      WHERE 
+        uv.vendorId NOT IN (
+          SELECT vendorId 
+          FROM user_vendors 
+          WHERE userId = ?
+        )
+      GROUP BY 
+        uv.vendorId, v.companyName, v.logoUrl, v.websiteURL
+      ORDER BY 
+        total_subscriptions DESC
+      LIMIT 50;
+    `;
+  
+    try {
+      const result = await this.getItemsRepository().query(rawQuery, [userId]);
+      return result;
+    } catch (error) {
+      throw new Error(`Error executing raw query: ${error.message}`);
+    }
+  }
+
+  
 }
+
+
+
 

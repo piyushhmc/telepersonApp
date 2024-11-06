@@ -13,6 +13,12 @@ export interface User {
     updatedAt?: Date;
     deletedAt?: Date|null;
     deletedBy?: number|null;
+    usrGuid?:string|null;
+    incomeBuckets?:string|null;
+    state?:string|null;
+    gender?:string|null;
+    age?:number|null;
+    isMX:boolean|false
 }
 
 export enum UserRole {

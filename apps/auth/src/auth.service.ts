@@ -25,6 +25,8 @@ export class AuthService {
       lastname:user.lastName,
       role:user.role,
       status:user.status,
+      isMX:user.isMX,
+      usrGuid:user.usrGuid,
     };
 
     const expires = new Date();

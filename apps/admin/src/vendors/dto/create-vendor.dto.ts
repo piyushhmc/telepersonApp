@@ -35,5 +35,10 @@ export class CreateVendorDto {
   revenue?: string;
   @IsNumber()
   employees?: number;
-
+  @IsString()
+  facebook?: string;  
+  @IsString()
+  twitter?: string; 
+   @IsString()
+  instagram?: string;
 }
