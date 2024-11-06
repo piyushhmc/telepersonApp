@@ -9,6 +9,9 @@ export class Vendors extends AbstractEntity<Vendors> {
     id: number;
 
     @Column({nullable: true })
+    guid: string;
+    
+    @Column({nullable: true })
     companyCode: string;
 
     @Column({nullable: true })
@@ -90,5 +93,20 @@ export class Vendors extends AbstractEntity<Vendors> {
 
     @Column({nullable: true ,default: false})
     isMX: boolean;
+
+    @Column({nullable: true })
+    facebook: string;
+
+    @Column({nullable: true })
+    twitter: string;
+
+    @Column({nullable: true })
+    instagram: string;
+
+    @Column({nullable: true })
+    intentCompletedOn: Date|null;
+
+    @Column({ default: 0 }) 
+    isAllIntentAdded: number;
 
 }

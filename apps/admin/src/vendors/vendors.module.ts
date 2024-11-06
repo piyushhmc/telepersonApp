@@ -15,11 +15,14 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
 import { Common } from '../utils/common';
 import { Intents } from './models/intent.entity'
 import { IntentRepository } from './intents.repository';
+import { VendorIntents } from './models/vendor-intent.entity';
+import { UserVendors } from './models/user-vendors.entity';
+import { S3Module } from '../s3/s3.module';
 
 @Module({
   imports: [
     DatabaseModule,
-    DatabaseModule.forFeature([Vendors,Intents]),
+    DatabaseModule.forFeature([Vendors,Intents,VendorIntents,UserVendors]),
     LoggerModule,
     ClientsModule.registerAsync([
       {
@@ -35,6 +38,7 @@ import { IntentRepository } from './intents.repository';
       },
     ]),
     HealthModule,
+    S3Module,
   ],
   controllers: [VendorsController],
   providers: [VendorsService, VendorRepository,IntentRepository,Common],

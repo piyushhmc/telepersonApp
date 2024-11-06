@@ -64,6 +64,27 @@ export class User extends AbstractEntity<User> {
   @Column({nullable: true })
   deletedBy: number|null;
 
+  @Column({default:null,nullable:true})
+  usrGuid?: string|null;
+
+  @Column({default:null,nullable:true})
+  incomeBuckets?: string|null;
+
+  @Column({default:null,nullable:true})
+  state?: string|null;
+
+  @Column({default:null,nullable:true})
+  gender?: string|null;
+
+  @Column({default:null,nullable:true})
+  age?: Number|null;
+
+  @Column({default:false})
+  isMX: boolean;
+
+  @Column({default:null,nullable:true})
+  tempToken?: string|null;
+
   @BeforeInsert()
   emailToLowerCase() {
       this.email = this.email.toLowerCase();

@@ -48,5 +48,15 @@ export class UsersRepository extends AbstractRepository<User> {
       }
     }
   }
+
+  async deleteUserVendor(userId:number){
+    const rawQuery = `Delete from user_vendors where userId=${userId}`;
+
+    try {
+      const result= await this.getItemsRepository().query(rawQuery);  
+    } catch (error) {
+      throw new Error(`Error executing  query: ${error.message}`);
+    }
+  }
 }
 

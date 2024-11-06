@@ -24,7 +24,7 @@ ENV NODE_ENV=${NODE_ENV}
 WORKDIR /usr/src/app
 
 COPY package.json ./
-COPY pnpm-lock.yaml ./
+COPY npm-lock.yaml ./
 
 RUN npm install -g pnpm
 

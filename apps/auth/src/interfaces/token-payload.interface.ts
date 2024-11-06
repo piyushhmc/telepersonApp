@@ -5,4 +5,6 @@ export interface TokenPayload {
   lastname:string;
   role:string;
   status:string;
+  isMX:boolean;
+  usrGuid:string;
 }

@@ -7,13 +7,15 @@ import { User } from '@app/common';
 import * as bcrypt from 'bcryptjs';
 import { Status ,UserRole} from  './models/user.interface'
 import { PutUserDto } from './dto/put-user.dto';
+import { Logger } from 'nestjs-pino';
 
 @Injectable()
 export class UsersService {
 
     constructor(
         private readonly userRepository: UsersRepository,
-        private readonly configService: ConfigService
+        private readonly configService: ConfigService,
+        private readonly logger:Logger
     ){}
 
     async patchUser(id:number,loggedInUserId :number,patchUserDto: PatchUserDto) {
@@ -27,7 +29,6 @@ export class UsersService {
             user.status = Status.INACTIVE
         }
 
-
         if (patchUserDto.status ==  Status.DELETED){
             user.status = Status.DELETED
             user.deletedBy = loggedInUserId
@@ -35,16 +36,19 @@ export class UsersService {
 
         }
 
-       
-
-        await this.userRepository.findOneAndUpdate(
+        let isUpdate = await this.userRepository.findOneAndUpdate(
             { id },
             user,
         );
-    
+        
+        if(isUpdate!=null && (patchUserDto.status ==  Status.DELETED)){
+            this.deleteUserVendor(id)
+        }
         return user
+    }
 
-
+    private async deleteUserVendor(userId:number){
+        return this.userRepository.deleteUserVendor(userId)
     }
 
     async userList(search:string,page:number,orderBy:string){
@@ -56,7 +60,7 @@ export class UsersService {
     async registerUser(registerUserDto:RegisterUserDto){
         
         try{
-            console.log("registerUserDto service",registerUserDto)
+            
             const user = new User({})
             user.firstName = registerUserDto.firstName;
             user.lastName = registerUserDto.lastName;
@@ -68,6 +72,7 @@ export class UsersService {
             } else if (registerUserDto.role == "Agent") {
                 user.role = UserRole.AGENT
             } else {
+                this.logger.log(`Invalid user role!'`)
                 throw  new UnprocessableEntityException('Invalid user role!')
             }
     
@@ -79,6 +84,7 @@ export class UsersService {
             
         }
         catch(err){
+            this.logger.log(err)
             throw  new UnprocessableEntityException(err)
         }
         
@@ -88,11 +94,17 @@ export class UsersService {
 
     private async checkEmailExists(email: string) {
         try {
-          await this.userRepository.findOne({ email: email });
+          let isUser = await this.userRepository.findOne({ email: email });
+          if(isUser){
+            throw new UnprocessableEntityException('Email already exists');
+          }
+          return
+
         } catch (err) {
+            this.logger.log(err.message)
           return;
         }
-        throw new UnprocessableEntityException('Email already exists');
+        
     }
 
     async userDetails(id:number){
